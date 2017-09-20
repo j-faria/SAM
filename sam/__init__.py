@@ -6,4 +6,6 @@ __all__ = ['Planet', 'WhiteNoise', 'Simulation']
 __version__ = '0.1.dev0'
 
 from planet import Planet
-from noise import WhiteNoise
+from _noise import WhiteNoise
+from _sampling import TimeSampling
+

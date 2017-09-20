@@ -2,9 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sampling import TimeSampling
 from planet import Planet
-from noise import WhiteNoise
+from _sampling import TimeSampling
 
 def deepgetattr(obj, attr):
     """Recurses through an attribute chain to get the ultimate value."""
@@ -78,13 +77,13 @@ class Sum(Component):
             if isinstance(c, Planet):
                 Pmin = min(Pmin, c.P)
 
-        ntt = int(10 * t.ptp() / Pmin)
+        ntt = int(50 * t.ptp() / Pmin)
+        if ntt == 0: ntt = 1000
         tt = np.linspace(t.min(), t.max(), ntt)
-
 
         fig, axes = plt.subplots(2,1)
         axes[0].plot(t, self.sample(t), '-ok', lw=2)
-        axes[0].plot(tt, self.sample(tt), 'r', lw=1, alpha=0.1)
+        axes[0].plot(tt, self.sample(tt), 'r', lw=1, alpha=0.5)
 
         for c in self.components:
             axes[1].plot(tt, c.sample(tt), '-', alpha=0.5, label=c.__repr__())
