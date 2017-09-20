@@ -7,8 +7,10 @@ extensions = [
     Extension("sam._kepler", ["kepler/_kepler.pyx"],)
 ]
 
-setup(name='SAM',
-      version='0.0.1',
+from sam import __version__
+
+setup(name='sam',
+      version=__version__,
       description='The Stellar Activity Machine',
       url='http://github.com/j-faria/SAM',
       author='João Faria',
