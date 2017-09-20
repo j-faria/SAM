@@ -4,6 +4,7 @@ python:
 
 install:
   - pip install cython
+  - pip install matplotlib
   - pip install nose
   - python setup.py install
 
