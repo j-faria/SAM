@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup, Extension
 from Cython.Build import cythonize
-# from numpy import get_include
+from numpy import get_include
 
 extensions = [
     Extension("sam._kepler", ["kepler/_kepler.pyx"],)
@@ -17,5 +17,5 @@ setup(name='SAM',
       packages=['sam'],
       ext_modules = cythonize(extensions),
       # extra_compile_args = ["-O2 -w"], 
-      # include_dirs = [get_include()],
+      include_dirs = [get_include()],
       zip_safe=False)
