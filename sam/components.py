@@ -2,7 +2,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from planet import Planet
 from _sampling import TimeSampling
 
 def deepgetattr(obj, attr):
@@ -74,8 +73,10 @@ class Sum(Component):
         # get at least 10 points inside the smallest planet period
         Pmin = np.inf
         for c in self.components:
-            if isinstance(c, Planet):
+            try:
                 Pmin = min(Pmin, c.P)
+            except AttributeError:
+                pass
 
         ntt = int(50 * t.ptp() / Pmin)
         if ntt == 0: ntt = 1000
