@@ -16,12 +16,15 @@ class WhiteNoise(Component):
 
 		self.sd = sd
 		self.var = var
+		self.random_state = rng.get_state()
 
 
 	def __repr__(self):
 		return "WhiteNoise(sigma=%2.2f)" % self.sd
 
 
-	def sample(self, t):
+	def sample(self, t, change_random_state=False):
+		if not change_random_state:
+			rng.set_state(self.random_state)
 		t = np.atleast_1d(t)
 		return rng.normal(loc=0., scale=self.sd, size=t.size)
