@@ -43,3 +43,23 @@ def rv_curve_array(np.ndarray[DTYPE_t, ndim=1] t, double per, double tp,
 
     return rv
 
+
+# create the wrapper code, with numpy type annotations
+@cython.boundscheck(False)
+def rv_curve_multi_array(np.ndarray[DTYPE_t, ndim=1] t, 
+                         np.ndarray[DTYPE_t, ndim=1] per,
+                         np.ndarray[DTYPE_t, ndim=1] tp,
+                         np.ndarray[DTYPE_t, ndim=1] e, 
+                         np.ndarray[DTYPE_t, ndim=1] om, 
+                         np.ndarray[DTYPE_t, ndim=1] k):
+    cdef int size, npl, j, i 
+    size = t.shape[0]
+    npl = per.shape[0]
+
+    # cdef np.ndarray[DTYPE_t, ndim=1] rv = t.copy()
+    cdef np.ndarray rv = np.zeros([size, npl], dtype=DTYPE)
+    for j in range(npl):
+        for i in range(size):
+            rv[i, j] += rv_curve(t[i], per[j], tp[j], e[j], om[j], k[j])
+
+    return rv

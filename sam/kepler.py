@@ -27,23 +27,31 @@ def rv_curve(t, orbel, cext=cext):
     
     t = np.atleast_1d(t).astype(np.float)
     # unpack array
+    multi = any([isinstance(p,list) for p in orbel]) or \
+            any([isinstance(p,np.ndarray) for p in orbel]) 
+    if multi: orbel = [np.atleast_1d(p).astype(np.float) for p in orbel]
     per, k, e, om, tp = orbel
-    # print orbel
     
     # Error checking
-    if e == 0.0:
-        M = 2 * np.pi * ( ((t - tp) / per) - np.floor( (t - tp) / per ) )
-        return k * np.cos( M + om )
-    
-    if per < 0: per = 1e-4
-    if e < 0: e = 0
-    if e > 0.99: e = 0.99
+    if multi:
+        per[per<0] = 1e-4
+        e[e<0] = 0.
+        e[e>0.99] = 0.99
+    else:
+        if e == 0.0:
+            M = 2 * np.pi * ( ((t - tp) / per) - np.floor( (t - tp) / per ) )
+            return k * np.cos( M + om )
+        
+        if per < 0: per = 1e-4
+        if e < 0: e = 0
+        if e > 0.99: e = 0.99
 
 
     # Calculate the approximate eccentric anomaly, E1, via the mean anomaly  M.
     if cext:
         # print per, tp, e, om, k
-        rv = _kepler.rv_curve_array(t, per, tp, e, om, k)
+        if multi: rv = _kepler.rv_curve_multi_array(t, per, tp, e, om, k)
+        else: rv = _kepler.rv_curve_array(t, per, tp, e, om, k)
     else:
         M = 2 * np.pi * ( ((t - tp) / per) - np.floor( (t - tp) / per ) )
         eccarr = np.zeros(t.size) + e
