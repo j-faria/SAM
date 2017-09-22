@@ -29,8 +29,11 @@ def rv_curve(t, orbel, cext=cext):
     # unpack array
     multi = any([isinstance(p,list) for p in orbel]) or \
             any([isinstance(p,np.ndarray) for p in orbel]) 
-    if multi: orbel = [np.atleast_1d(p).astype(np.float) for p in orbel]
+    if multi: 
+        orbel = np.array([np.atleast_1d(p).astype(np.float) for p in orbel]).T
+    
     per, k, e, om, tp = orbel
+
     
     # Error checking
     if multi:
