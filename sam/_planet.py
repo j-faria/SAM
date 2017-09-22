@@ -36,13 +36,17 @@ class Planet(Component):
             self.Tp = 57000.
 
         # create range of parameters
-        self.grid = False
+        self.grid, self.grid2d = False, False
+        self.grid_parameters = []
         for var in ['P', 'K', 'e']:
             if isinstance(getattr(self, var), list) or \
                isinstance(getattr(self, var), np.ndarray):
                 setattr(self, var, np.atleast_1d(getattr(self, var)))
-                self.grid = True
-                self.grid_parameter = var
+                if self.grid:
+                    self.grid2d = True
+                else:
+                    self.grid = True
+                self.grid_parameters.append(var)
 
         self.orbital_parameters = orb_pars(self.P, self.K, self.e, self.w, self.Tp)
         super(Planet, self).__init__()
@@ -55,10 +59,10 @@ class Planet(Component):
             return "Planet(P=%4.2fdays, K=%4.2fm/s, e=%2.2f)" % \
                        (self.P, self.K, self.e)
 
-
+    """
     def _grid_par_repr(self):
         assert self.grid
-        if self.grid_parameter == 'P':
+        if 'P' in self.grid_parameters:
             if len(self.P) > 3:
                 return "Planet(P=[%4.1f..%4.1f]days, K=%4.2fm/s, e=%2.2f)" % \
                        (self.P[0], self.P[-1], self.K, self.e)
@@ -66,7 +70,7 @@ class Planet(Component):
                 return "Planet(P=%sdays, K=%4.2fm/s, e=%2.2f)" % \
                        (self.P, self.K, self.e)
 
-        if self.grid_parameter == 'K':
+        if 'K' in self.grid_parameters:
             if len(self.K) > 3:
                 return "Planet(P=%4.2fdays, K=[%4.1f..%4.1f]m/s, e=%2.2f)" % \
                        (self.P, self.K[0], self.K[-1], self.e)
@@ -74,14 +78,42 @@ class Planet(Component):
                 return "Planet(P=%4.2fdays, K=%sm/s, e=%2.2f)" % \
                        (self.P, self.K, self.e)
 
-        if self.grid_parameter == 'e':
+        if 'e' in self.grid_parameters:
             if len(self.e) > 3:
                 return "Planet(P=%4.2fdays, K=%4.2fm/s, e=[%2.1f..%2.1f])" % \
                        (self.P, self.K, self.e[0], self.e[-1])
             else:
                 return "Planet(P=%4.2fdays, K=%4.2fm/s, e=%s)" % \
                        (self.P, self.K, self.e)
+    """
 
+    def _grid_par_repr(self):
+        s = 'Planet('
+        if 'P' in self.grid_parameters:
+            if len(self.P) > 3:
+                s += 'P=[%4.1f..%4.1f]days, ' % (self.P[0], self.P[-1])
+            else:
+                s += 'P=%sdays, ' % (self.P,)
+        else:
+            s += 'P=%4.2fdays, ' % (self.P,)
+
+        if 'K' in self.grid_parameters:
+            if len(self.K) > 3:
+                s += 'K=[%4.1f..%4.1f]m/s, ' % (self.K[0], self.K[-1])
+            else:
+                s += 'K=%sm/s, ' % (self.K,)
+        else:
+            s += 'K=%4.2fm/s, ' % (self.K,)
+
+        if 'e' in self.grid_parameters:
+            if len(self.e) > 3:
+                s += 'e=[%2.1f..%2.1f]), ' % (self.e[0], self.e[-1])
+            else:
+                s += 'e=%s)' % (self.e,)
+        else:
+            s += 'e=%2.2f)' % (self.e,)
+
+        return s
 
     def _get_time(self):
         if self.grid and self.grid_parameter=='P':
