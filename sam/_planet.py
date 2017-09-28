@@ -1,5 +1,7 @@
 from collections import namedtuple
 from functools import partial
+from itertools import product
+
 import numpy as np
 import numpy.random as rng
 import matplotlib.pyplot as plt
@@ -118,28 +120,25 @@ class Planet(Component):
         return s
 
     def _get_time(self):
-        if self.grid and self.grid_parameter=='P':
-            P = self.P.max()
+        # if self.grid and 'P' in self.grid_parameters:
+        if 'P' in self.grid_parameters:
+            P = self.P.mean()
         else:
             P = self.P
         return np.linspace(0, 3*P, 1000)
 
     def getrv(self, t):
         if self.grid:
-            # if self.grid_parameter=='P':
-            #     tile = partial(np.tile, reps=self.P.size)
-            #     pars = [self.P] + map(tile, [self.K, self.e, self.w, self.Tp ])
-            #     print pars
-            other_par_names = ['P', 'K', 'e', 'w', 'Tp']
-            other_par_values = [self.P, self.K, self.e, self.w, self.Tp]
+            args = []
             for var in ['P', 'K', 'e']:
-                if self.grid_parameter == var:
-                    i = other_par_names.index(var)
-                    grid_var = other_par_values.pop(i)
-                    tile = partial(np.tile, reps=grid_var.size)
-                    pars = map(tile, other_par_values)
-                    pars.insert(i, grid_var)
+                if var in self.grid_parameters:
+                    args.append(getattr(self, var))
+                else:
+                    args.append([getattr(self, var)])
+            args.append([self.w])
+            args.append([self.Tp])
 
+            pars = map(np.array, product(*args))
             return kepler.rv_curve(t, pars)
 
         else:
