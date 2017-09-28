@@ -13,13 +13,14 @@ orb_pars = namedtuple('orbital_parameters', 'P K e w Tp')
 pi = np.pi
 ecc_prior = beta(a=0.867, b=3.03)
 
+
 class Planet(Component):
-    def __init__(self, P=None, K=None, e=None, w=None, Tp=None, 
+    def __init__(self, P=None, K=None, e=None, w=None, Tp=None, lam=None,
                  orbital_parameters=None):
 
         if orbital_parameters is None:
-            self.P, self.K, self.e, self.w, self.Tp = P,K,e,w,Tp
-            self.orbital_parameters = orb_pars(P,K,e,w,Tp)
+            self.P, self.K, self.e, self.w, self.Tp, self.lam = P, K, e, w, Tp, lam
+            self.orbital_parameters = orb_pars(P, K, e, w, Tp)
         else:
             assert isinstance(orbital_parameters, list)
             self.orbital_parameters = orb_pars(*orbital_parameters)
@@ -32,9 +33,13 @@ class Planet(Component):
         if self.e is None:
             self.e = ecc_prior.rvs()
 
-        if self.w is None or self.Tp is None:
-            self.w = rng.uniform(0,2*pi)
+        if self.w is None:
+            self.w = rng.uniform(0, 2*pi)
+
+        if self.Tp is None and self.lam is None:
             self.Tp = 57000.
+        elif self.lam is not None:
+            self.Tp = (self.P*(self.w - self.lam))/(2*np.pi) + 2454000.0
 
         # create range of parameters
         self.grid, self.grid2d = False, False
