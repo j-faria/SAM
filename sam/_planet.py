@@ -160,3 +160,20 @@ class Planet(Component):
             ax.plot(t, self.getrv(t), 'k', lw=2)
         ax.set(xlabel='Time [days]', ylabel='RV [m/s]')
         plt.show()
+
+
+class Offset(Component):
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return "Offset(%4.2f)" % self.value
+
+    def sample(self, t=None):
+        if t is None:
+            if self.sampling is None:
+                raise ValueError('provide `t` or use set_sampling')
+            t = self.sampling.get_times()
+            return t, self.value * np.ones_like(t)
+        else:
+            return self.value * np.ones_like(t)
