@@ -45,6 +45,7 @@ class Planet(Component):
 
         # create range of parameters
         self.grid, self.grid2d = False, False
+        self.gridsize = 1
         self.grid_parameters = []
         for var in ['P', 'K', 'e']:
             if isinstance(getattr(self, var), list) or \
@@ -144,18 +145,23 @@ class Planet(Component):
         else:
             return kepler.rv_curve(t, self.orbital_parameters)
 
-    def sample(self, t):
-        return self.getrv(t)
+    def sample(self, t=None):
+        if t is None:
+            if self.sampling is None:
+                raise ValueError('provide `t` or use set_sampling')
+            t = self.sampling.get_times()
+            return t, self.getrv(t)
+        else:
+            return self.getrv(t)
 
     def plotrv(self, t=None):
         if t is None:
             t = self._get_time()
 
-        fig, ax = plt.subplots(1,1)
+        fig, ax = plt.subplots(1, 1)
         if self.grid:
-            alpha = 0.4
-            ax.plot(t, self.getrv(t), 'k', lw=2, alpha=alpha)
-        else:    
+            ax.plot(t, self.getrv(t), 'k', lw=2, alpha=0.4)
+        else:
             ax.plot(t, self.getrv(t), 'k', lw=2)
         ax.set(xlabel='Time [days]', ylabel='RV [m/s]')
         plt.show()
