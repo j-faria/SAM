@@ -20,12 +20,12 @@ if _version_extra:
 __version__ = '.'.join(map(str, _ver))
 
 
-from _planet import Planet, Offset
-from _noise import WhiteNoise, DistributedNoise
-from _sampling import TimeSampling
-
 # units with Pint 
 from pint import UnitRegistry as _UnitRegistry
 units = _UnitRegistry()
 _Q = units.Quantity
+
+from _planet import Planet, Offset
+from _noise import WhiteNoise, DistributedNoise
+from _sampling import TimeSampling
 
