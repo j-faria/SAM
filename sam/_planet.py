@@ -7,6 +7,7 @@ from scipy.stats import beta
 
 import kepler
 from components import Component
+from . import units, _Q
 
 orb_pars = namedtuple('orbital_parameters', 'P K e w Tp')
 pi = np.pi
@@ -46,18 +47,22 @@ class Planet(Component):
                     self.grid2d = True
                 else:
                     self.grid = True
+                self.gridsize *= getattr(self, var).size
                 self.grid_parameters.append(var)
 
-        self.orbital_parameters = orb_pars(self.P, self.K, self.e, self.w, self.Tp)
-        super(Planet, self).__init__()
+        self.orbital_parameters = \
+            orb_pars(self.P, self.K, self.e, self.w, self.Tp)
 
+        super(Planet, self).__init__()
 
     def __repr__(self):
         if self.grid:
             return self._grid_par_repr()
         else:
-            return "Planet(P=%4.2fdays, K=%4.2fm/s, e=%2.2f)" % \
-                       (self.P, self.K, self.e)
+            P = _Q(self.P,'days')
+            K = _Q(self.K, 'meter / second')
+            e = _Q(self.e)
+            return "Planet(P={0:~P}, K={1:~P}, e={2:~P})".format(P, K, e)
 
     """
     def _grid_par_repr(self):
@@ -88,31 +93,23 @@ class Planet(Component):
     """
 
     def _grid_par_repr(self):
-        s = 'Planet('
-        if 'P' in self.grid_parameters:
-            if len(self.P) > 3:
-                s += 'P=[%4.1f..%4.1f]days, ' % (self.P[0], self.P[-1])
-            else:
-                s += 'P=%sdays, ' % (self.P,)
-        else:
-            s += 'P=%4.2fdays, ' % (self.P,)
+        old_printoptions = np.get_printoptions()
+        np.set_printoptions(threshold=4, edgeitems=1)
 
-        if 'K' in self.grid_parameters:
-            if len(self.K) > 3:
-                s += 'K=[%4.1f..%4.1f]m/s, ' % (self.K[0], self.K[-1])
-            else:
-                s += 'K=%sm/s, ' % (self.K,)
-        else:
-            s += 'K=%4.2fm/s, ' % (self.K,)
+        def atleast_1d_new(var):
+            try:
+                if len(var) > 1: return np.atleast_1d(var)
+                elif len(var) == 1: return var[0]
+            except TypeError:
+                return var
 
-        if 'e' in self.grid_parameters:
-            if len(self.e) > 3:
-                s += 'e=[%2.1f..%2.1f]), ' % (self.e[0], self.e[-1])
-            else:
-                s += 'e=%s)' % (self.e,)
-        else:
-            s += 'e=%2.2f)' % (self.e,)
+        P, K, e = map(atleast_1d_new, [self.P, self.K, self.e])
+        P = _Q(P,'days')
+        K = _Q(K, 'meter / second')
+        e = _Q(e)
+        s = "Planet(P={0:~P}, K={1:~P}, e={2:~P})".format(P, K, e)
 
+        np.set_printoptions(**old_printoptions)
         return s
 
     def _get_time(self):

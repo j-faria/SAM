@@ -9,3 +9,7 @@ from _planet import Planet
 from _noise import WhiteNoise
 from _sampling import TimeSampling
 
+# units with Pint 
+from pint import UnitRegistry as _UnitRegistry
+units = _UnitRegistry()
+_Q = units.Quantity
