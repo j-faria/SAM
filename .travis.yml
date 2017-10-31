@@ -5,11 +5,13 @@ python:
 install:
   - pip install cython
   - pip install matplotlib scipy
-  - pip install nose
+  #- pip install nose
+  - pip install pint
   - python setup.py install
 
 script:
-  - nosetests
+  #- nosetests
+  - pytest
 
 
 after_success:

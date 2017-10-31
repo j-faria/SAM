@@ -61,7 +61,10 @@ class Sum(Component):
                 raise ValueError, 'provide `t` or use set_sampling'
             t = self.sampling.get_times()
 
-        return self.c1.sample(t) + self.c2.sample(t)
+        # s1 = self.c1.sample(t)
+        # s2 = self.c2.sample(t)
+        # return self.c1.sample(t) + self.c2.sample(t)
+        return np.vstack(self.c1.sample(t)) + np.vstack(self.c2.sample(t))
 
 
     def plots(self, t=None):
@@ -74,9 +77,13 @@ class Sum(Component):
         Pmin = np.inf
         for c in self.components:
             try:
-                Pmin = min(Pmin, c.P)
+                if c.grid: 
+                    Pmin = min(Pmin, c.P.min())
+                else:
+                    Pmin = min(Pmin, c.P)
             except AttributeError:
                 pass
+
 
         ntt = int(50 * t.ptp() / Pmin)
         if ntt == 0: ntt = 1000
