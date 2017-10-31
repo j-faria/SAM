@@ -3,17 +3,17 @@ __all__ = ['rv_curve']
 
 import numpy as np
 
-# Try to import Kepler's equation solver written in C
-try:
-    from . import _kepler 
-    cext = True
-except ImportError:
-    print "WARNING (kepler.py)"
-    print "Cannot import C-based Kepler's equation solver."
-    print "Falling back to the slower numpy implementation."
-    cext = False
+# # Try to import Kepler's equation solver written in C
+# try:
+#     from . import _kepler 
+#     cext = True
+# except ImportError:
+#     print "WARNING (kepler.py)"
+#     print "Cannot import C-based Kepler's equation solver."
+#     print "Falling back to the slower numpy implementation."
+#     cext = False
 
-def rv_curve(t, orbel, cext=cext):
+def rv_curve(t, orbel):#, cext=cext):
     """RV Drive
     
     Args:
@@ -22,7 +22,6 @@ def rv_curve(t, orbel, cext=cext):
               om is expected to be in radians
     Returns:
         rv: (array): radial velocity curve
-    
     """
     
     t = np.atleast_1d(t).astype(np.float)
@@ -40,18 +39,19 @@ def rv_curve(t, orbel, cext=cext):
     if e > 0.99: e = 0.99
 
 
-    # Calculate the approximate eccentric anomaly, E1, via the mean anomaly  M.
-    if cext:
-        # print per, tp, e, om, k
-        rv = _kepler.rv_curve_array(t, per, tp, e, om, k)
-    else:
-        M = 2 * np.pi * ( ((t - tp) / per) - np.floor( (t - tp) / per ) )
-        eccarr = np.zeros(t.size) + e
-        E1 = kepler(M, eccarr)
-        # Calculate nu
-        nu = 2 * np.arctan( ( (1+e) / (1-e) )**0.5 * np.tan( E1 / 2 ) )
-        # Calculate the radial velocity
-        rv = k * ( np.cos( nu + om ) + e * np.cos( om ) ) 
+    # # Calculate the approximate eccentric anomaly, E1, via the mean anomaly  M.
+    # if cext:
+    #     # print per, tp, e, om, k
+    #     rv = _kepler.rv_curve_array(t, per, tp, e, om, k)
+    # else:
+
+    M = 2 * np.pi * ( ((t - tp) / per) - np.floor( (t - tp) / per ) )
+    eccarr = np.zeros(t.size) + e
+    E1 = kepler(M, eccarr)
+    # Calculate nu
+    nu = 2 * np.arctan( ( (1+e) / (1-e) )**0.5 * np.tan( E1 / 2 ) )
+    # Calculate the radial velocity
+    rv = k * ( np.cos( nu + om ) + e * np.cos( om ) ) 
     
     return rv
 
@@ -82,7 +82,7 @@ def kepler(inbigM, inecc):
     while nd > 0:  # while unconverged elements exist
         count += 1
         
-        M = Marr[convd]  # just the unconverged elements ...
+        # M = Marr[convd]  # just the unconverged elements ...
         ecc = eccarr[convd]
         E = Earr[convd]
 
@@ -106,37 +106,3 @@ def kepler(inbigM, inecc):
     else: 
         return Earr[0]
 
-def profile():
-    # Profile and compare C-based Kepler solver with
-    # Python/Numpy implementation
-
-    import timeit
-    
-    ecc = 0.20
-    # orbel = [32.468, 2456000, ecc, np.pi/2, 10.0]
-    numloops = 10000
-
-    
-    for size in [10,30,100,300,1000,3000]:
-
-        setup = """\
-from sam.kepler import rv_curve
-import numpy as np
-
-gc.enable()
-
-ecc = %f
-orbel = [32.468, 2456000, ecc, np.pi/2, 10.0]
-
-t = np.linspace(2455000, 2457000, %d)
-""" % (ecc, size)
-        
-        
-        print "\nProfiling pure C code for an RV time series with {} observations".format(size)
-        tc = timeit.timeit('rv_curve(t, orbel, cext=True)', setup=setup, number=numloops)
-        print "Ran %d model calculations in %5.3f seconds" % (numloops, tc)
-
-        print "Profiling Python code for an RV time series with {} observations".format(size)
-        tp = timeit.timeit('rv_curve(t, orbel, cext=False)', setup=setup, number=numloops)
-        print "Ran %d model calculations in %5.3f seconds" % (numloops, tp)
-        print "The C version runs %5.2f times faster" % (tp/tc)
