@@ -3,7 +3,7 @@ SAM: the Stellar Activity Machine
 """
 __all__ = ['Planet', 'Offset',
            'WhiteNoise', 'DistributedNoise', 
-           'TimeSampling'
+           'TimeSampling', 'SOAP',
           ]
 
 _version_major = 0
@@ -28,4 +28,5 @@ _Q = units.Quantity
 from _planet import Planet, Offset
 from _noise import WhiteNoise, DistributedNoise
 from _sampling import TimeSampling
+from _soap import SOAP
 
