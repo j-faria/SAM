@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 from _sampling import TimeSampling
 
-
 def deepgetattr(obj, attr):
     """Recurses through an attribute chain to get the ultimate value."""
     return reduce(getattr, attr.split('.'), obj)
@@ -26,10 +25,15 @@ class Component(object):
     def set_sampling(self, sampling):
         assert isinstance(sampling, TimeSampling), \
             'argument of set_sampling should be instance of TimeSampling.'
-
         self.sampling = sampling
 
-    def save_rdb(self, filename, error=None):
+
+    def save_rdb(self, filename, t=None, error=None, units='ms'):
+        if t is None:
+            if self.sampling is None:
+                raise ValueError('provide `t` or use set_sampling')
+            t = self.sampling.get_times()
+
         if os.path.exists(filename):
             print 'File "%s" exists. Replace? (y/n) ' % filename,
             answer = raw_input()
@@ -40,15 +44,35 @@ class Component(object):
                 return
 
         if error is None:
-            error = np.ones_like(self.sampling.time)
+            if not hasattr(self, 'components'):
+                error = np.ones_like(t)
+            else:
+                noises = []
+                from _noise import WhiteNoise, DistributedNoise
+                poss = (WhiteNoise, DistributedNoise)
+                for c in self.components:
+                    if any([isinstance(c, cl) for cl in poss]):
+                        noises.append(c)
+
+                error = np.sum([n.sample(t) for n in noises], axis=0)
+
+                if len(noises) == 0:
+                    error = np.ones_like(t)
 
         header = 'jdb\tvrad\tsvrad\n---\t----\t-----'
         fmt = ['%12.6f', '%8.5f', '%7.5f']
-        sample = self.sample()
-        if isinstance(sample, tuple):
-            X = zip(sample[0], sample[1], error)
+        sample = self.sample(t)
+        if units == 'ms':
+            f = 1.
+        elif units == 'kms':
+            f = 1e-3
         else:
-            X = zip(self.sampling.time, sample, error)
+            raise ValueError('Units %s unrecognized, try "ms" or "kms".' % units)
+
+        if isinstance(sample, tuple):
+            X = zip(sample[0], sample[1]*f, error*f)
+        else:
+            X = zip(self.sampling.time, sample*f, error*f)
 
         np.savetxt(filename, X=X, header=header, fmt=fmt, comments='',)
 
