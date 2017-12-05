@@ -22,6 +22,8 @@ if SOAP_is_available:
 
 		def __repr__(self):
 			return self.sim.__repr__()
+		def __condensed_repr__(self):
+			return self.sim.__repr__()
 
 
 		def sample(self, t):

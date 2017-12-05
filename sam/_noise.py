@@ -42,6 +42,8 @@ class WhiteNoise(Component):
             return "WhiteNoise(sigma=%2.2e)" % self.sd
         else:
             return "WhiteNoise(sigma=%2.2f)" % self.sd
+    def __condensed_repr__(self):
+        return "WN(%.1f)" % self.sd
 
     def sample(self, t=None, change_random_state=False):
         if not change_random_state:
