@@ -25,49 +25,43 @@ def rv_curve(t, orbel):#, cext=cext):
     """
     
     t = np.atleast_1d(t).astype(np.float)
-
-    ## multiple planets?
+    # unpack array
     multi = any([isinstance(p,list) for p in orbel]) or \
-            any([isinstance(p,np.ndarray) for p in orbel])
-
+            any([isinstance(p,np.ndarray) for p in orbel]) 
     if multi: 
         orbel = np.array([np.atleast_1d(p).astype(np.float) for p in orbel]).T
-        # multi_per, multi_k, multi_e, multi_om, multi_tp = orbel
+    
+    per, k, e, om, tp = orbel
 
-        # Error checking
-        orbel[0][orbel[0]<0] = 1e-4
-        orbel[2][orbel[2]<0] = 0.
-        orbel[2][orbel[2]>0.99] = 0.99
-
-        rv = np.zeros((t.size, len(orbel[0])))
-        for i, (per,k,e,om,tp) in enumerate(np.array(orbel).T):
-            M = 2 * np.pi * ( ((t - tp) / per) - np.floor( (t - tp) / per ) )
-            eccarr = np.zeros(t.size) + e
-            E1 = kepler(M, eccarr)
-            # Calculate nu
-            nu = 2 * np.arctan( ( (1+e) / (1-e) )**0.5 * np.tan( E1 / 2 ) )
-            # Calculate the radial velocity
-            rv[:,i] = k * ( np.cos( nu + om ) + e * np.cos( om ) ) 
-
+    
+    # Error checking
+    if multi:
+        per[per<0] = 1e-4
+        e[e<0] = 0.
+        e[e>0.99] = 0.99
     else:
-        per, k, e, om, tp = orbel
-        # try to get out early for circular orbits
         if e == 0.0:
             M = 2 * np.pi * ( ((t - tp) / per) - np.floor( (t - tp) / per ) )
             return k * np.cos( M + om )
         
-        # Error checking
         if per < 0: per = 1e-4
         if e < 0: e = 0
         if e > 0.99: e = 0.99
 
-        M = 2 * np.pi * ( ((t - tp) / per) - np.floor( (t - tp) / per ) )
-        eccarr = np.zeros(t.size) + e
-        E1 = kepler(M, eccarr)
-        # Calculate nu
-        nu = 2 * np.arctan( ( (1+e) / (1-e) )**0.5 * np.tan( E1 / 2 ) )
-        # Calculate the radial velocity
-        rv = k * ( np.cos( nu + om ) + e * np.cos( om ) ) 
+
+    # # Calculate the approximate eccentric anomaly, E1, via the mean anomaly  M.
+    # if cext:
+    #     # print per, tp, e, om, k
+    #     rv = _kepler.rv_curve_array(t, per, tp, e, om, k)
+    # else:
+
+    M = 2 * np.pi * ( ((t - tp) / per) - np.floor( (t - tp) / per ) )
+    eccarr = np.zeros(t.size) + e
+    E1 = kepler(M, eccarr)
+    # Calculate nu
+    nu = 2 * np.arctan( ( (1+e) / (1-e) )**0.5 * np.tan( E1 / 2 ) )
+    # Calculate the radial velocity
+    rv = k * ( np.cos( nu + om ) + e * np.cos( om ) ) 
     
     return rv
 
