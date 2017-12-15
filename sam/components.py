@@ -144,3 +144,4 @@ class Sum(Component):
         for c in self.components:
             axes[1].plot(tt, c.sample(tt), '-', alpha=0.5, label=c.__repr__())
         axes[1].legend()
+        plt.show()

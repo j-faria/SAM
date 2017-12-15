@@ -1,6 +1,7 @@
 import warnings
 import numpy as np
 from components import Component
+from SOAP.classes import randomActReg
 
 try:
 	from SOAP import Simulation
@@ -16,8 +17,11 @@ __all__ = ['SOAP']
 if SOAP_is_available:
 
 	class SOAP(Component):
-		def __init__(self):
+		def __init__(self, random=False):
 			self.sim = Simulation()
+			if random:
+				self.sim.active_regions = [randomActReg(),]
+
 
 
 		def __repr__(self):
