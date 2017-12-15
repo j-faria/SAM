@@ -1,10 +1,10 @@
 import warnings
 import numpy as np
 from components import Component
-from SOAP.classes import randomActReg
 
 try:
 	from SOAP import Simulation
+	from SOAP.classes import randomActReg
 	SOAP_is_available = True
 except ImportError:
 	SOAP_is_available = False
