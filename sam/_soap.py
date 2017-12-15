@@ -28,14 +28,9 @@ if SOAP_is_available:
 
 		def sample(self, t):
 			psi = t / self.sim.star.prot
-			# try:
-			# 	if np.allclose(self.sim.PSI, psi): 
-			# 		return self.sim.rv_tot * 1e3
-			# except AttributeError:
-			# 	pass
 
 			rv, _ = self.sim.calculate_activity_RV_signal(psi)
-			return rv * 1e3
+			return (rv - rv.mean()) * 1e3
 
 else:
 
