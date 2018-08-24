@@ -1,6 +1,6 @@
 import warnings
 import numpy as np
-from components import Component
+from .components import Component
 
 try:
 	from SOAP import Simulation

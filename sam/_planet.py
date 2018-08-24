@@ -7,8 +7,8 @@ import numpy.random as rng
 import matplotlib.pyplot as plt
 from scipy.stats import beta
 
-import kepler
-from components import Component
+from . import kepler
+from .components import Component
 from . import units, _Q
 
 orb_pars = namedtuple('orbital_parameters', 'P K e w Tp')
@@ -70,7 +70,7 @@ class Planet(Component):
             P = _Q(self.P,'days')
             K = _Q(self.K, 'meter / second')
             e = _Q(self.e)
-            return "Planet(P={0:~P}, K={1:~P}, e={2:~P})".format(P, K, e)
+            return "Planet(P={0:.2f~P}, K={1:.2f~P}, e={2:.2f~P})".format(P, K, e)
 
     """
     def _grid_par_repr(self):
@@ -111,7 +111,7 @@ class Planet(Component):
             except TypeError:
                 return var
 
-        P, K, e = map(atleast_1d_new, [self.P, self.K, self.e])
+        P, K, e = list(map(atleast_1d_new, [self.P, self.K, self.e]))
         P = _Q(P,'days')
         K = _Q(K, 'meter / second')
         e = _Q(e)
@@ -139,7 +139,7 @@ class Planet(Component):
             args.append([self.w])
             args.append([self.Tp])
 
-            pars = map(np.array, product(*args))
+            pars = list(map(np.array, product(*args)))
             return kepler.rv_curve(t, pars)
 
         else:
@@ -168,11 +168,13 @@ class Planet(Component):
 
 
 class Offset(Component):
+    """ A RV constant offset """
     def __init__(self, value):
+        """ `value` should be in m/s """
         self.value = value
 
     def __repr__(self):
-        return "Offset(%4.2f)" % self.value
+        return "Offset(%4.2f m/s)" % self.value
 
     def sample(self, t=None):
         if t is None:
@@ -182,3 +184,25 @@ class Offset(Component):
             return t, self.value * np.ones_like(t)
         else:
             return self.value * np.ones_like(t)
+
+
+class Slope(Component):
+    """ 
+    A RV slope.
+    This is implemented as RV = slope*(time - time[0])
+    """
+    def __init__(self, slope):
+        """ slope should be in m/s/[units of time] """
+        self.slope = slope
+
+    def __repr__(self):
+        return "Slope(%4.2f m/s/[unit of time])" % self.slope
+
+    def sample(self, t=None):
+        if t is None:
+            if self.sampling is None:
+                raise ValueError('provide `t` or use set_sampling')
+            t = self.sampling.get_times()
+            return t, self.slope * (t - t[0])
+        else:
+            return self.slope * (t - t[0])

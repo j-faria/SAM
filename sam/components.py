@@ -3,7 +3,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from _sampling import TimeSampling
+from ._sampling import TimeSampling
+from functools import reduce
 
 def deepgetattr(obj, attr):
     """Recurses through an attribute chain to get the ultimate value."""
@@ -35,12 +36,12 @@ class Component(object):
             t = self.sampling.get_times()
 
         if os.path.exists(filename):
-            print 'File "%s" exists. Replace? (y/n) ' % filename,
-            answer = raw_input()
+            print('File "%s" exists. Replace? (y/n) ' % filename, end=' ')
+            answer = input()
             if answer == 'y':
                 pass
             else:
-                print 'aborting'
+                print('aborting')
                 return
 
         if error is None:
@@ -48,7 +49,7 @@ class Component(object):
                 error = np.ones_like(t)
             else:
                 noises = []
-                from _noise import WhiteNoise, DistributedNoise
+                from ._noise import WhiteNoise, DistributedNoise
                 poss = (WhiteNoise, DistributedNoise)
                 for c in self.components:
                     if any([isinstance(c, cl) for cl in poss]):
@@ -70,9 +71,9 @@ class Component(object):
             raise ValueError('Units %s unrecognized, try "ms" or "kms".' % units)
 
         if isinstance(sample, tuple):
-            X = zip(sample[0], sample[1]*f, error*f)
+            X = list(zip(sample[0], sample[1]*f, error*f))
         else:
-            X = zip(self.sampling.time, sample*f, error*f)
+            X = list(zip(self.sampling.time, sample*f, error*f))
 
         np.savetxt(filename, X=X, header=header, fmt=fmt, comments='',)
 

@@ -90,4 +90,3 @@ class DistributedNoise(Component):
             return self.distribution.rvs(size=t.size)
         else:
             return self.distribution.rvs(*self.args, size=t.size)
-        # return rng.normal(loc=0., scale=self.sd, size=t.size)
