@@ -5,43 +5,129 @@ from itertools import product
 import numpy as np
 import numpy.random as rng
 import matplotlib.pyplot as plt
-from scipy.stats import beta
+from scipy import stats
 
 from . import kepler
 from .components import Component
 from . import units, _Q
 
-orb_pars = namedtuple('orbital_parameters', 'P K e w Tp')
+orb_pars = namedtuple('orbital_parameters', 'P K e omega Tp')
 pi = np.pi
-ecc_prior = beta(a=0.867, b=3.03)
+
+period_prior = stats.uniform(1.1, 1.1+1000)
+semi_amplitude_prior = stats.uniform(0.0, 100)
+ecc_prior = stats.beta(a=0.867, b=3.03)
+
+
+
+def _parse_orbital_parameters(orbi):
+    """
+    Given a list orbi=[P,e,inc,Omega,omega,pomega,f,M,l,theta,Tp] of orbital
+    parameters, parse the necessary ones to build a planet orbit.
+    """
+    # adapted from rebound 
+    # (https://github.com/hannorein/rebound/blob/master/rebound/particle.py)
+
+    try:
+        P,e,inc,Omega,omega,pomega,f,M,l,theta,Tp = orbi
+    except ValueError as e:
+        raise ValueError('Got the wrong number of orbital parameters. '\
+                         'This should not have happened...')
+
+    if P is None: 
+        # we will have to generate an orbital period
+        pass
+
+
+    ## other parameters
+    if e is None:
+        # we will have to generate an eccentricity
+        pass
+    if inc is None:
+        inc = 0. # assumed
+
+    ## angles
+    if Omega is None: # we require that Omega be passed if you want to specify longitude of node
+        Omega = 0.
+
+    pericenters = [omega, pomega] # We need omega; can specify it either directly or through pomega
+    numNones = pericenters.count(None)
+
+    if numNones == 0:
+        raise ValueError("You can't pass both omega and pomega")
+    if numNones == 2: # Neither passed.  Default to 0.
+        omega = 0.
+    if numNones == 1:
+        if pomega is not None:        # Only have to find omega is pomega was passed
+            if np.cos(inc) > 0:       # inc is in range [-pi/2, pi/2] (prograde), so pomega = Omega + omega
+                omega = pomega - Omega
+            else:
+                omega = Omega - pomega  # for retrograde orbits, pomega = Omega - omega
+
+    longitudes = [f,M,l,theta,Tp] # can specify longitude through any of these four
+    numNones = longitudes.count(None)
+
+    if numNones < 4:
+        raise ValueError("You can only pass one longitude/anomaly in the set [f, M, l, theta, Tp]")
+    if numNones == 5:                           # none of them passed. Default to 0.
+        f = 0.
+    if numNones == 4:                           # Only one was passed.
+        if f is None:                           # Only have to work if f wasn't passed.
+            if theta is not None:               # theta is next easiest
+                if np.cos(inc) > 0:             # for prograde orbits, theta = Omega + omega + f
+                    f = theta - Omega - omega
+                else:
+                    f = Omega - omega - theta   # for retrograde, theta = Omega - omega - f
+            else:                               # Either M, l, or T was passed.  Will need to find M first (if not passed) to find f
+                if l is not None:
+                    if np.cos(inc) > 0:         # for prograde orbits, l = Omega + omega + M
+                        M = l - Omega - omega
+                    else:
+                        M = Omega - omega - l   # for retrograde, l = Omega - omega - M
+                else:
+                    if Tp is not None:
+                        M = 0.0 # assumed
+                # f = clibrebound.reb_tools_M_to_f(c_double(e), c_double(M))
+
 
 
 class Planet(Component):
-    def __init__(self, P=None, K=None, e=None, w=None, Tp=None, lam=None,
+    def __init__(self, P=None, K=None, e=None, mass=None,
+                 inc=None, Omega=None, omega=None, pomega=None, f=None,
+                 M=None, l=None, theta=None, Tp=None, lam=None,
                  orbital_parameters=None):
 
+        # the user can provide a list with the 5 more common orbital parameters
+        # period, semi-amplitude, eccentricity, argument of periastron, time of periastron
+        # these 5 parameters are always stored in self.orbital_parameters
         if orbital_parameters is None:
-            self.P, self.K, self.e, self.w, self.Tp, self.lam = P, K, e, w, Tp, lam
-            self.orbital_parameters = orb_pars(P, K, e, w, Tp)
+            self.P, self.K, self.e, self.w, self.Tp = P, K, e, omega, Tp
+            self.orbital_parameters = orb_pars(P, K, e, omega, Tp)
         else:
             assert isinstance(orbital_parameters, list)
             self.orbital_parameters = orb_pars(*orbital_parameters)
+            P, K, e, w, Tp = orbital_parameters
             self.P, self.K, self.e, self.w, self.Tp = orbital_parameters
 
+        # TODO: K needs to be checked!
+        # first check if we have enough (and not too much) to describe an orbit
+        _parse_orbital_parameters([P,e,inc,Omega,omega,pomega,f,M,l,theta,Tp])
+
+        # assume a random orbital period
         if self.P is None:
-            self.P = rng.uniform(1.1, 1000.)
+            self.P = period_prior.rvs()
         if self.K is None:
-            self.K = rng.uniform(0, 100.)
+            self.K = semi_amplitude_prior.rvs()
         if self.e is None:
             self.e = ecc_prior.rvs()
 
         if self.w is None:
             self.w = rng.uniform(0, 2*pi)
 
-        if self.Tp is None and self.lam is None:
+        if self.Tp is None and lam is None:
             self.Tp = 57000.
-        elif self.lam is not None:
-            self.Tp = (self.P*(self.w - self.lam))/(2*np.pi) + 2454000.0
+        elif lam is not None:
+            self.Tp = (self.P*(self.w - lam))/(2*np.pi) + 2454000.0
 
         # create range of parameters
         self.grid, self.grid2d = False, False
@@ -127,6 +213,16 @@ class Planet(Component):
         else:
             P = self.P
         return np.linspace(0, 3*P, 1000)
+
+
+    def mass(self, star_mass=1.0):
+        """ The mass of this planet.
+        Provide star_mass in solar masses. Period is in days, semi-amplitude 
+        in m/s, output is in Jupiter masses.
+        """
+        m_mj = 4.919e-3 * star_mass**(2./3) \
+               * self.P**(1./3) * self.K * np.sqrt(1-self.e**2)
+        return m_mj
 
     def getrv(self, t):
         if self.grid:
