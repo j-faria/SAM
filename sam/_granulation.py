@@ -4,18 +4,18 @@ from .components import Component
 from . import units, _Q
 from .utils import timeseries_from_power_spectrum, normalise_timeseries
 
-__all__ = ['KallingerGran',]
+__all__ = ['Granulation',]
 
 
-class KallingerGran(Component):
-    def __init__(self, sigma=75, tau=2/24):
+class Granulation(Component):
+    def __init__(self, sigma=75, tau=2/24, model='kallinger'):
         self.sigma, self.tau = sigma, tau
         self.random_state = rng.get_state()
 
     def __repr__(self):
         s = _Q(self.sigma, 'meter / second')
         tau = _Q(self.tau, 'day')
-        return "KallingerGran(sigma={0:.2f~P}, tau={1:.2f~P})".format(s, tau)
+        return "Granulation(sigma={0:.2f~P}, tau={1:.2f~P})".format(s, tau)
 
     def __condensed_repr__(self):
         return "KGran(%.1f, %.1f)" % (self.sigma, self.tau)
