@@ -1,18 +1,25 @@
 import numpy as np
-from scipy.signal import periodogram
+from astropy.stats import LombScargle
 
-def power_spectrum(time, y):
-    time = time - time[0]
-    df = 1.0 / np.ediff1d(time).min()
-    f, p = periodogram(y, df)
+from . import units, ms
 
-    lhs = (1.0 / len(time)) * np.sum(y ** 2)
-    rhs = np.sum(p)
-    ratio = lhs / rhs
-    p *= ratio / df
-    fill = len(np.where(y != 0.0)[0]) / float(len(y))
-    p /= fill
-    return f, p
+
+def power_spectrum(t, y):
+    assert t.unit == units.day
+    assert y.unit == ms
+
+    f, p = LombScargle(t, y, normalization='psd').autopower()
+    N = t.size
+    # return frequency in Hz and power in (m/s)^2
+    return f.to(units.Hz), p/N
+
+
+def convolve_hanning(f, p, window):
+    # smooth the spectrum by convolving with a (normalized) Hann window of window points
+    kernel = np.hanning(window)
+    kernel = kernel / kernel.sum()
+    smoothed = np.convolve(kernel, p, mode='SAME')
+    return smoothed
 
 def timeseries_from_power_spectrum(freq, power):
     bw = freq[1] - freq[0]

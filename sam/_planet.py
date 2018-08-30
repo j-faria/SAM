@@ -9,7 +9,7 @@ from scipy import stats
 
 from . import kepler
 from .components import Component
-from . import units, _Q
+from . import units
 
 orb_pars = namedtuple('orbital_parameters', 'P K e omega Tp')
 pi = np.pi
@@ -153,9 +153,9 @@ class Planet(Component):
         if self.grid:
             return self._grid_par_repr()
         else:
-            P = _Q(self.P,'days')
-            K = _Q(self.K, 'meter / second')
-            e = _Q(self.e)
+            P = self.P #_Q(self.P,'days')
+            K = self.K #_Q(self.K, 'meter / second')
+            e = self.e #_Q(self.e)
             return "Planet(P={0:.2f~P}, K={1:.2f~P}, e={2:.2f~P})".format(P, K, e)
 
     """
@@ -198,9 +198,9 @@ class Planet(Component):
                 return var
 
         P, K, e = list(map(atleast_1d_new, [self.P, self.K, self.e]))
-        P = _Q(P,'days')
-        K = _Q(K, 'meter / second')
-        e = _Q(e)
+        P = self.P #_Q(P,'days')
+        K = self.K #_Q(K, 'meter / second')
+        e = self.e #_Q(e)
         s = "Planet(P={0:~P}, K={1:~P}, e={2:~P})".format(P, K, e)
 
         np.set_printoptions(**old_printoptions)
