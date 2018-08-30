@@ -28,12 +28,35 @@ class Component(object):
             'argument of set_sampling should be instance of TimeSampling.'
         self.sampling = sampling
 
+    def _has_sampling(self):
+        return hasattr(self, 'sampling') and self.sampling is not None
+
+    def _get_t(self):
+        if self._has_sampling():
+            return self.sampling.get_times()
+        else:
+            raise ValueError('provide `t` or use set_sampling')
+
+    def plots(self, t=None, ntt=None):
+        if t is None:
+            t = self._get_t()
+
+        if ntt is None:
+            ntt = int(50 * t.ptp())
+            if ntt == 0:
+                ntt = 1000
+            ntt = min(10000, ntt)
+        tt = np.linspace(t.min(), t.max(), ntt)
+
+        fig, axes = plt.subplots(2, 1)
+        axes[0].plot(tt, self.sample(tt), 'r', lw=1, alpha=0.3)
+        axes[0].plot(t, self.sample(t), '-ok', lw=2)
+
+        plt.show()
 
     def save_rdb(self, filename, t=None, error=None, units='ms'):
         if t is None:
-            if self.sampling is None:
-                raise ValueError('provide `t` or use set_sampling')
-            t = self.sampling.get_times()
+            t = self._get_t()
 
         if os.path.exists(filename):
             print('File "%s" exists. Replace? (y/n) ' % filename, end=' ')
@@ -105,9 +128,7 @@ class Sum(Component):
 
     def sample(self, t=None, change_random_state=False):
         if t is None:
-            if self.sampling is None:
-                raise ValueError('provide `t` or use set_sampling')
-            t = self.sampling.get_times()
+            t = self._get_t()
 
         # s1 = self.c1.sample(t)
         # s2 = self.c2.sample(t)
@@ -118,9 +139,7 @@ class Sum(Component):
 
     def plots(self, t=None, ntt=None):
         if t is None:
-            if self.sampling is None:
-                raise ValueError('provide `t` or use set_sampling')
-            t = self.sampling.get_times()
+            t = self._get_t()
 
         # get at least 10 points inside the smallest planet period
         Pmin = np.inf
