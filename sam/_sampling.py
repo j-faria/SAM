@@ -59,12 +59,17 @@ def read_extras(filename):
     pass
 
 class TimeSampling(object):
-    def __init__(self, nobs=30, duration=None,
-                 time=None, vrad=None, evrad=None):
+    def __init__(self, times, nobs=30, duration=None):
         
-        self.nobs = nobs
-        self.duration = duration
-        self.time, self.vrad, self.evrad = time, vrad, evrad
+        self.time = times
+
+    @property
+    def duration(self):
+        return self.time.ptp()
+    
+    @property
+    def nobs(self):
+        return len(self.time)
 
     def get_times(self):
         return self.time
@@ -80,8 +85,7 @@ class TimeSampling(object):
         nobs = t.size
         duration = t.ptp()
 
-        return cls(nobs=nobs, duration=duration,
-                   time=t, vrad=y, evrad=e)
+        return cls(time=t, nobs=nobs, duration=duration)
 
 
     @property
