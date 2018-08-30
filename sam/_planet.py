@@ -156,7 +156,7 @@ class Planet(Component):
             P = self.P #_Q(self.P,'days')
             K = self.K #_Q(self.K, 'meter / second')
             e = self.e #_Q(self.e)
-            return "Planet(P={0:.2f~P}, K={1:.2f~P}, e={2:.2f~P})".format(P, K, e)
+            return "Planet(P={0:.2f}, K={1:.2f}, e={2:.2f})".format(P, K, e)
 
     """
     def _grid_par_repr(self):
@@ -201,7 +201,7 @@ class Planet(Component):
         P = self.P #_Q(P,'days')
         K = self.K #_Q(K, 'meter / second')
         e = self.e #_Q(e)
-        s = "Planet(P={0:~P}, K={1:~P}, e={2:~P})".format(P, K, e)
+        s = "Planet(P={0}, K={1}, e={2})".format(P, K, e)
 
         np.set_printoptions(**old_printoptions)
         return s
@@ -241,7 +241,7 @@ class Planet(Component):
         else:
             return kepler.rv_curve(t, self.orbital_parameters)
 
-    def sample(self, t=None):
+    def sample(self, t=None, *args):
         if t is None:
             if self.sampling is None:
                 raise ValueError('provide `t` or use set_sampling')

@@ -85,7 +85,7 @@ class Granulation(Component):
 
         if self.model == 'harvey':
             power = self.psd_harvey(nu, self.sigma, self.tau)
-        if self.model == 'kallinger':
+        elif self.model == 'kallinger':
             power = self.psd_kallinger(nu, self.sigma, self.tau)
         else:
             power = self.psd_general(nu, self.sigma, self.tau, self.C)
@@ -98,7 +98,7 @@ class Granulation(Component):
         # in the middle of all this we lost a factor of 1000
         # (the units of y are Hz(1/2) m / (s uHz(1/2))
         factor = (units.Hz / units.uHz)**(1/2)
-        y = y * factor.decompose().scale
+        y = y * factor.decompose().scale / factor
 
         return y
 
