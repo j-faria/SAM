@@ -56,7 +56,8 @@ class Component(object):
                         noises.append(c)
 
                 error = np.sum([n.sample(t) for n in noises], axis=0)
-
+                error = np.abs(error)
+                
                 if len(noises) == 0:
                     error = np.ones_like(t)
 

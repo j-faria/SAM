@@ -1,8 +1,9 @@
 """
 SAM: the Stellar Activity Machine
 """
-__all__ = ['Planet', 'Offset', 'Slope',
+__all__ = ['Planet', 'Earth', 'Jupiter', 
            'Granulation',
+           'Offset', 'Slope',
            'WhiteNoise', 'DistributedNoise', 
            'TimeSampling', 'SOAP',
           ]
@@ -14,7 +15,8 @@ from astropy import constants
 ms = units.meter / units.second
 kms = units.kilometer / units.second
 
-from ._planet import Planet, Offset, Slope
+from ._planet import Planet, Earth, Jupiter, \
+                     Offset, Slope
 from ._granulation import Granulation
 from ._noise import WhiteNoise, DistributedNoise
 from ._sampling import TimeSampling
