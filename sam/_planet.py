@@ -220,7 +220,7 @@ class Planet(Component):
         Provide star_mass in solar masses. Period is in days, semi-amplitude 
         in m/s, output is in Jupiter masses.
         """
-        m_mj = 4.919e-3 * star_mass**(2./3) \
+        m_mj = 0.004920266275467775 * star_mass**(2./3) \
                * self.P**(1./3) * self.K * np.sqrt(1-self.e**2)
         return m_mj
 
@@ -261,6 +261,51 @@ class Planet(Component):
             ax.plot(t, self.getrv(t), 'k', lw=2)
         ax.set(xlabel='Time [days]', ylabel='RV [m/s]')
         plt.show()
+
+
+class Earth(Planet):
+    def __init__(self):
+        super(Earth, self).__init__(P=365.242, e=0.0167, K=0.08947, 
+                                    omega=-1.252482512951468, Tp=2.187854028075233)
+
+class Jupiter(Planet):
+    def __init__(self):
+        super(Jupiter, self).__init__(P=4330.595, e=0.0489, K=12.468753671465423, 
+                                      omega=-1.5070286210693336, Tp=27.632898088712313)
+
+
+
+# class Mercury(Planet):
+#     def __init__(self):
+#         super(Mercury, self).__init__(P=87.968, e=0.2056, K=, 
+#                                       omega=, Tp=)
+
+# class Venus(Planet):
+#     def __init__(self):
+#         super(Venus, self).__init__(P=224.695, e=0.0067, K=, 
+#                                     omega=, Tp=)
+
+# class Mars(Planet):
+#     def __init__(self):
+#         super(Mars, self).__init__(P=, e=, K=, 
+#                                    omega=, Tp=)
+
+# class Saturn(Planet):
+#     def __init__(self):
+#         super(Saturn, self).__init__(P=, e=, K=, 
+#                                      omega=, Tp=)
+
+# class Uranus(Planet):
+#     def __init__(self):
+#         super(Uranus, self).__init__(P=, e=, K=, 
+#                                      omega=, Tp=)
+
+# class Neptune(Planet):
+#     def __init__(self):
+#         super(Neptune, self).__init__(P=, e=, K=, 
+#                                       omega=, Tp=)
+
+
 
 
 class Offset(Component):
