@@ -102,7 +102,7 @@ class Sum(Component):
 
         return c
 
-    def sample(self, t=None):
+    def sample(self, t=None, change_random_state=False):
         if t is None:
             if self.sampling is None:
                 raise ValueError('provide `t` or use set_sampling')
@@ -111,7 +111,8 @@ class Sum(Component):
         # s1 = self.c1.sample(t)
         # s2 = self.c2.sample(t)
         # return self.c1.sample(t) + self.c2.sample(t)
-        return np.vstack(self.c1.sample(t)) + np.vstack(self.c2.sample(t))
+        return np.vstack(self.c1.sample(t, change_random_state)) \
+               + np.vstack(self.c2.sample(t, change_random_state))
         # return np.hstack(np.hsplit(self.c1.sample(t), 4) + np.hsplit(self.c2.sample(t), 2))
 
     def plots(self, t=None, ntt=None):
