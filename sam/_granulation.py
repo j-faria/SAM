@@ -1,8 +1,9 @@
 import numpy as np
 import numpy.random as rng
 from .components import Component
-from . import units, constants, ms
-from .utils import timeseries_from_power_spectrum, normalise_timeseries
+from . import units, constants
+from .utils import timeseries_from_power_spectrum, normalise_timeseries, \
+                   _pprint, _pprints
 
 from astropy.stats import LombScargle
 
@@ -39,7 +40,8 @@ class Granulation(Component):
 
     def __repr__(self):
         s, tau = self.sigma, self.tau
-        return "Granulation(sigma={0:.3f}, tau={1:.3f})".format(s, tau)
+        return "Granulation(sigma={0}, tau={1})".format(*_pprints([s, tau]))
+        # return "Granulation(sigma={0:.3f}, tau={1:.3f})".format(s, tau)
 
     def __condensed_repr__(self):
         return "Gran(%.2f, %.2f)" % (self.sigma.value, self.tau.value)

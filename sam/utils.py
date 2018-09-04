@@ -1,10 +1,21 @@
 import numpy as np
 from astropy.stats import LombScargle
 
-from . import units, ms
+from . import units
+
+def _pprint(value):
+    """ A pretty representation of one value with units """
+    valstr = np.array2string(value)
+    s = value._unitstr.replace(' / ', '/')
+    unitstr = s[0] + s[1:].replace(' ', '·')
+    return '{0}{1:s}'.format(valstr, unitstr)
+
+def _pprints(values):
+    """ A pretty representation of values with units """
+    return list(map(_pprint, values))
 
 
-def power_spectrum(t, y):
+def power_spectrum(t, y, freq=None):
     assert t.unit == units.day
     assert y.unit == ms
 
