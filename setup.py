@@ -35,4 +35,5 @@ setup(name='sam',
       # ext_modules = cythonize(extensions),
       # extra_compile_args = ["-O2 -w"], 
       # include_dirs = [get_include()],
+      include_package_data=True,
       zip_safe=False)
