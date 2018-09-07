@@ -9,8 +9,8 @@ from astropy.stats import LombScargle
 
 __all__ = ['Granulation',]
 
-
-sigma_units = (ms**2/units.uHz)
+sigma_units = (units.ms**2/units.uHz)
+tau_units = units.hour
 
 class Granulation(Component):
     
@@ -21,7 +21,6 @@ class Granulation(Component):
         except AttributeError:
             sigma = sigma * sigma_units
 
-        tau_units = units.hour
         try:
             assert tau.unit == tau_units, \
                 'Units of `tau` in Granulation should be %s' % tau_units
