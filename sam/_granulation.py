@@ -14,7 +14,7 @@ tau_units = units.hour
 
 class Granulation(Component):
     
-    def __init__(self, sigma=0.01, tau=2, model='harvey', C=None):
+    def __init__(self, sigma=0.01, tau=2, model='', C=None):
         try:
             assert sigma.unit == sigma_units, \
                 'Units of `sigma` in Granulation should be %s' % sigma_units
@@ -47,41 +47,53 @@ class Granulation(Component):
 
     def psd_kallinger(self, nu, A, B):
         assert A.unit == sigma_units
-        assert B.unit == units.hour
+        assert B.unit == tau_units
         assert nu.unit == units.Hz
         B = B.to(1/nu.unit)
         return A / (1.0 + (B * nu) ** 4)
 
     def psd_harvey(self, nu, A, B):
         assert A.unit == sigma_units
-        assert B.unit == units.hour
+        assert B.unit == tau_units
         assert nu.unit == units.Hz
         B = B.to(1/nu.unit)
         return A / (1.0 + (B * nu) ** 2)
     
     def psd_general(self, nu, A, B, C):
         assert A.unit == sigma_units
-        assert B.unit == units.hour
+        assert B.unit == tau_units
         assert nu.unit == units.Hz
         B = B.to(1/nu.unit)
         return A / (1.0 + (B * nu) ** C)
 
-    # def eta_sq(self):
-    #     """ Compute sinc^2 modulation from sampling """
-    #     return np.sinc(self.f / (2.0 * self.nyq)) ** 2.0
-
+    def get_psd(self, nu):
+        assert nu.unit == units.Hz
+        if self.model == 'harvey':
+            return self.psd_harvey(nu, self.sigma, self.tau)
+        elif self.model == 'kallinger':
+            return self.psd_kallinger(nu, self.sigma, self.tau)
+        else:
+            return self.psd_general(nu, self.sigma, self.tau, self.C)
 
     def sample(self, t=None, change_random_state=False):
         if not change_random_state:
             rng.set_state(self.random_state)
         if t is None:
-            if self.sampling is None:
-                raise ValueError('provide `t` or use set_sampling')
-            t = self.sampling.get_times()
+            t = self._get_t()
 
-        t = t * units.day
+        try:
+            assert t.unit == units.day
+        except AttributeError:
+            t = t * units.day
+
+        minf = 1 / t.ptp() # periods up to the timespan
+        maxf = 1 / (2*np.ediff1d(t).min()) # down to the min time spacing
         # freq comes in 1/d from autofrequency
-        freq = LombScargle(t, np.zeros_like(t)).autofrequency()
+        freq = LombScargle(t, np.zeros_like(t)).autofrequency(
+                    minimum_frequency=minf, maximum_frequency=maxf,
+                    # samples_per_peak=1/int(t.size/100)
+                    )
+        # print(freq.size)
         nu = freq.to(units.Hz)
 
         if self.model == 'harvey':
